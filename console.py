@@ -84,28 +84,20 @@ class HBNBCommand(cmd.Cmd):
         """Prints all string representation of all instances"""
         args = line.split(" ")
 
-        if line != "" and line == "BaseModel":
-            # print the basemode object
-            all = storage.all()
-            all_list = []
-            for m, n in all.items():
-                if type(n) is BaseModel:
-                    all_list.append(n)
-
-            print("[", end="")
-            for idx in range(len(all_list)):
-                print(all_list[idx], end="")
-                if idx + 1 == len(all_list):
-                    print("]")
-                else:
-                    print(", ", end="")
-
-        elif line == "":
-            # print all objects
-            pass
-        elif line != "" and line != "BaseModel":
-            # class doesn't exist
-            pass
+        if len(args) == 0:
+            # No class name provied
+            objects = storage.all
+            print([str(obj) for obj in objects.values()])
+        else:
+            class_name = args[0]
+            if class_name != "BaseMode":
+                # Invalid class name provided
+                print("** class doesn't exist **")
+            else:
+                # Print instances of BaseModel
+                objects = storage.all()
+                print([str(obj) for obj in objects.values()
+                    if type(obj).__name__ == class_name])
 
     def do_update(self, line):
         """Updates an instance based on the class name and id"""
