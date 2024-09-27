@@ -5,6 +5,7 @@
 import cmd
 from models.base_model import BaseModel
 from models import storage
+import re
 
 
 class HBNBCommand(cmd.Cmd):
@@ -105,6 +106,60 @@ class HBNBCommand(cmd.Cmd):
         elif line != "" and line != "BaseModel":
             # class doesn't exist
             pass
+
+    def do_update(self, line):
+        """Updates an instance based on the class name and id"""
+        args = re.findall(r'(\S+)|"([^"]+)"', line)
+        args = [item[0] if item[0] else item[1] for item in args]
+
+        if len(args) == 0:
+            print("** class name missing **")
+            return
+        if args[0] != "BaseModel":
+            print("** class doesn't exist **")
+            return
+        if len(args) < 2:
+            print("** instance id missing **")
+            return
+        key = f"{args[0]}.{args[1]}"
+
+        if key not in storage.all():
+            print("** no instance found **")
+            return
+        if len(args) < 3:
+            print("** attribute name missing **")
+            return
+        if len(args) < 4:
+            print("** value missing **")
+            return
+
+        obj = storage.all()[key]
+        attr_name = args[2]
+        attr_value = args[3]
+
+        # prevent updating id, created_at, and updated_at
+        if attr_name in ["id", "created_at", "updated_at"]:
+            print(f"** cannot update {attr_name} **")
+            return
+
+        # Case  the attribute value to the appropriate type
+        current_value = getattr(obj, attr_name, None)
+        if current_value is not None:
+            # if the attribute exist
+            try:
+                if isinstance(current_value, int):
+                    attr_value = int(attr_value)
+                elif isinstance(current_value, float):
+                    attr_value = float(attr_value)
+            except ValueError:
+                print(f"** cannot cast {attr_value} to "
+                      f"{type(current_value).__class__.__name__} **")
+
+        # Update the attribute and save the object
+        setattr(obj, attr_name, attr_value)
+        obj.save()
+        print(f"Updated {attr_name} for {args[1]} to {attr_value}")
+
 
 if __name__ == "__main__":
     HBNBCommand().cmdloop()
